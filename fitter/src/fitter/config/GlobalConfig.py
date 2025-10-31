@@ -57,9 +57,9 @@ NLRelativeScaleFactor = [1, 1, 1, 1]
 
 # energy resolution
 """Abusleme A, et al. Calibration Strategy of the JUNO Experiment [J/OL]. JHEP, 2021, 03:  004. DOI: 10.1007/JHEP03(2021)004."""
-gsigma_Eres_a = 0.00765
-gsigma_Eres_b = 0.015625
-gsigma_Eres_c = 0.0333
+gsigma_Eres_a = 0.0073
+gsigma_Eres_b = 0.0138
+gsigma_Eres_c = 0.0262
 
 
 bin2bin_width = 0.02  # signal shape uncertainty raw bin width
