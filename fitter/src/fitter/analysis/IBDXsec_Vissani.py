@@ -31,7 +31,9 @@ def getIBD_Xsec(
 ):
     def calc_bins(start, end, n_bins):
         step = (end - start) / n_bins
-        return np.arange(start, end + step * 0.1, step)  # + step*0.1 ensures the endpoint is included
+        return np.arange(
+            start, end + step * 0.1, step
+        )  # + step*0.1 ensures the endpoint is included
 
     E_nu_edges = calc_bins(out_E_nu_low, out_E_nu_up, n_E_nu_bins)
     E_dep_bins = calc_bins(out_E_dep_low, out_E_dep_up, n_E_dep_bins)
@@ -39,8 +41,8 @@ def getIBD_Xsec(
     # Compute actual bin width for filenames
     out_E_nu_binwid = (out_E_nu_up - out_E_nu_low) / n_E_nu_bins
     out_E_dep_binwid = (out_E_dep_up - out_E_dep_low) / n_E_dep_bins
-    # IBDXsec_VB_DYB = IBDXSec_VogelBeacom_DYB()
-    IBDXsec_VB_DYB = InverseBetaDecayXS()
+    # IBDXsec_Vissani = IBDXSec_VogelBeacom_DYB()
+    IBDXsec_Vissani = InverseBetaDecayXS()
 
     nsplit_costheta = 20
     costheta_values = np.linspace(-1, 1, nsplit_costheta + 1)
@@ -66,9 +68,9 @@ def getIBD_Xsec(
                 for k in range(nfine_split_E_nu):
                     E_nu_k = E_nu_i + d_E_nu * (k + 0.5) / nfine_split_E_nu
                     # T_1 = Ee_1(costheta,E_nu_k)-me
-                    T_1 = IBDXsec_VB_DYB.GetE_e(E_nu_k, costheta) - IBDXsec_VB_DYB.Me
+                    T_1 = IBDXsec_Vissani.GetE_e(E_nu_k, costheta) - IBDXsec_Vissani.Me
                     edep_l = get_index(
-                        T_1, edep_low0, out_E_dep_binwid, IBDXsec_VB_DYB.Me
+                        T_1, edep_low0, out_E_dep_binwid, IBDXsec_Vissani.Me
                     )
                     if edep_l < 0 or edep_l >= len(E_dep_bin_middles):
                         continue
@@ -76,11 +78,11 @@ def getIBD_Xsec(
                         E_nu=E_nu_k,
                         cos=costheta,
                         T_1=T_1,
-                        T_0=IBDXsec_VB_DYB.GetE_e(E_nu_k, 0) - IBDXsec_VB_DYB.Me,
+                        T_0=IBDXsec_Vissani.GetE_e(E_nu_k, 0) - IBDXsec_Vissani.Me,
                     )
                     # Within a costheta bin the differential cross section is constant; multiply by bin width for the bin total; E_nu is uniformly sub-binned and averaged by dividing by the number of sub-bins
                     IBD_Xsec_matrix[edep_l, i] += (
-                        IBDXsec_VB_DYB.dσ_dcos(E_nu_k, costheta)
+                        IBDXsec_Vissani.dσ_dcos(E_nu_k, costheta)
                         * costheta_binwidth
                         / nfine_split_E_nu
                     )

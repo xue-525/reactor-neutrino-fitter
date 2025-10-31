@@ -18,7 +18,7 @@ reactor-neutrino-fitter/
 │   ├── src/fitter/
 │   │   ├── analysis/          # Analysis modules
 │   │   │   ├── fitter.py      # Main fitting class
-│   │   │   └── IBDXsec_DYB_Edep_Vissani.py  # IBD cross-section matrix generator
+│   │   │   └── IBDXsec_Vissani.py  # IBD cross-section matrix generator
 │   │   ├── physics/            # Physics calculations
 │   │   │   ├── ibdxsec_Vissani.py      # IBD cross-section physics
 │   │   │   └── surprob_fit_sys.py      # Survival probability calculations
@@ -72,7 +72,7 @@ pip install torch numpy scipy matplotlib iminuit uproot numba tqdm
 Generate the cross-section matrix by running:
 
 ```bash
-python3 fitter/src/fitter/analysis/IBDXsec_DYB_Edep_Vissani.py
+python3 fitter/src/fitter/analysis/IBDXsec_Vissani.py
 ```
 
 This script will:
@@ -151,7 +151,7 @@ print(results)
 
 ## Key Components
 
-### IBDXsec_DYB_Edep_Vissani.py
+### IBDXsec_Vissani.py
 Generates the IBD differential cross-section matrix. This is a computationally intensive step that must be run before any analysis. The output matrix maps neutrino energy to deposited energy probabilities.
 
 ### ReactorExpected
