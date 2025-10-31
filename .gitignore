@@ -133,6 +133,7 @@ Thumbs.db
 # Output files
 output/
 results/
+fitter/data/outputs/
 *.log
 *.out
 
