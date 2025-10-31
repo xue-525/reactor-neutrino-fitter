@@ -1,0 +1,13 @@
+{
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/src/reactor",
+        "${workspaceFolder}/src/common",
+        "${workspaceFolder}/src/physics"
+    ],
+    "editor.fontSize": 20,
+    "marscode.codeCompletionPro": {
+        "enableCodeCompletionPro": false
+    },
+    "marscode.enableInlineCommand": true,
+    "marscode.chatLanguage": "cn"
+}
