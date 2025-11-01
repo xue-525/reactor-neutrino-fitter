@@ -120,7 +120,9 @@ class CacheMonitor:
     def monitor(cls, func):
         @wraps(func)
         def wrapper(instance, *args, **kwargs):
-            if not cls._monitoring_enabled:  # Return directly when monitoring is disabled
+            if (
+                not cls._monitoring_enabled
+            ):  # Return directly when monitoring is disabled
                 return func(instance, *args, **kwargs)
             # Access monitor via instance
             return instance.cache_monitor._monitor_impl(func)(instance, *args, **kwargs)
@@ -185,7 +187,11 @@ class CacheMonitor:
                 if (stats["cache_hits"] + stats["cache_misses"])
                 else 0
             )
-            avg_time = stats["total_time"] / stats["call_count"] * 1e3 if stats["call_count"] else 0
+            avg_time = (
+                stats["total_time"] / stats["call_count"] * 1e3
+                if stats["call_count"]
+                else 0
+            )
 
             print(f"\nFunction: {func_name}")
             print(f"  Total calls: {stats['call_count']}")
@@ -204,5 +210,5 @@ class CacheMonitor:
         print(f"Total peak memory: {total['mem'] / 1024**2:.2f} MB")
 
         def reset_stats(self):
-        """Reset statistics"""
-        self.stats = {}
+            """Reset statistics"""
+            self.stats = {}

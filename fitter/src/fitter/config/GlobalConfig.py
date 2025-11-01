@@ -12,6 +12,11 @@ new_edges_path = "./fitter/src/fitter/config/EnergyEdges.pt"
 
 
 """ test-statistic """
+"""
+X. Ji and W. Gu and X. Qian and H. Wei and C. Zhang
+Combined Neyman--Pearson chi-square: An improved approximation to the Poisson-likelihood chi-square
+Nucl. Instrum. Meth. A
+"""
 test_statistic = 0  # 0:CNP, 1:Pearson, 2:Pearson+log|V|
 
 end_bin = -175  # 9 MeV(-150); 8.5 MeV(-175) used for log|V|
@@ -56,11 +61,15 @@ sigma_bkg = torch.tensor([0, 0.2, 0.1, 0.5, 0.05, 0.05, 0.5])
 NLRelativeScaleFactor = [1, 1, 1, 1]
 
 # energy resolution
-"""Abusleme A, et al. Calibration Strategy of the JUNO Experiment [J/OL]. JHEP, 2021, 03:  004. DOI: 10.1007/JHEP03(2021)004."""
-gsigma_Eres_a = 0.0073
-gsigma_Eres_b = 0.0138
-gsigma_Eres_c = 0.0262
-
+"""
+Daya Bay Collaboration
+Measurement of electron antineutrino oscillation with 1230 days of operation at Daya Bay
+Phys. Rev. D 95, 072006 (2017).
+DOI: 10.1103/PhysRevD.95.072006
+"""
+gsigma_Eres_a = 0.08
+gsigma_Eres_b = 0.012
+gsigma_Eres_c = 0.001
 
 bin2bin_width = 0.02  # signal shape uncertainty raw bin width
 DataBinWidth = 0.02  # data bin width
