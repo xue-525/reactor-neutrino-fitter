@@ -20,7 +20,7 @@ torch.set_num_interop_threads(1)
 OSC_PARAM_NAMES = ["dmsq31", "sinsq12", "dmsq21", "sinsq13"]
 
 
-def create_juno_syst(seed=1):
+def create_juno_syst(seed=50):
     """Create and initialize JunoSyst with toy observed spectrum."""
     gcfg.test_statistic = 0
     year = 50 / 365.25
@@ -79,7 +79,7 @@ def run_lbfgs_fit(juno_syst, edm_tolerance=1e-5, max_iter=200):
         juno_syst,
         initial_params=None,
         max_iter=max_iter,
-        lr=2.0,
+        lr=1.0,
         history_size=10,
         line_search_fn="strong_wolfe",
         edm_tolerance=edm_tolerance,

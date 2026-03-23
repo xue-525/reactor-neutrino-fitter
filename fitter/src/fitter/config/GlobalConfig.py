@@ -5,6 +5,7 @@ device = "cpu"  # cpu or cuda
 monitoring = False
 enable_caching = True  # enable caching
 """ Input Paths"""
+scale_factor_path = "./fitter/data/scale_factor_juno.json"
 file_path = "./fitter/data/data_example.root"
 data_path = "./fitter/data/outputs/IBDXsec_matrix_enu5600_test.pt"
 

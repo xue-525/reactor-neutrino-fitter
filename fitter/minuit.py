@@ -3,6 +3,7 @@ from src.fitter.analysis.fitter import Fitter
 import psutil
 import os
 import time
+import json
 import torch
 from src.fitter.config import GlobalConfig as gcfg
 
@@ -28,3 +29,15 @@ m = Minuit(fitter.chi2, fitter.NO_params_NO, name=fitter.names)
 m.tol = 0.01
 # m.fixed["dmsq31"] = True
 results = m.migrad()
+
+# 保存拟合误差到 JSON 文件
+errors_dict = {}
+for name in m.parameters:
+    errors_dict[name] = round(float(m.errors[name]), 6)
+
+output_dir = "fitter/data/xuejq"
+os.makedirs(output_dir, exist_ok=True)
+output_path = os.path.join(output_dir, "scale_factor_juno.json")
+with open(output_path, "w") as f:
+    json.dump(errors_dict, f, indent=2)
+print(f"Scale factor saved to {output_path}")

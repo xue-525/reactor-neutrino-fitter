@@ -182,6 +182,13 @@ class Fitter:
             "alpha_l_pull3",
         )
 
+        self.fit_para_names = list(self.names)
+        self.NO_params_NO = torch.tensor(self.NO_params_NO, dtype=torch.float64, device=gcfg.device)
+        self.NO_params_IO = torch.tensor(self.NO_params_IO, dtype=torch.float64, device=gcfg.device)
+        self.IO_params_NO = torch.tensor(self.IO_params_NO, dtype=torch.float64, device=gcfg.device)
+        self.IO_params_IO = torch.tensor(self.IO_params_IO, dtype=torch.float64, device=gcfg.device)
+        self.fit_para_init = self.NO_params_NO
+
         self.syst_flags = {
             "SNF": True,
             "NonEq": True,
@@ -534,7 +541,7 @@ class Fitter:
 
         # Save best-fit expected spectrum
         if self.save_bft_spec:
-            self.y_bft = T_i.cpu().numpy()
+            self.y_bft = T_i.detach().cpu().numpy()
             self.y_bft_bkg_comp = self.rea.get_divided_background_spectrum(
                 alpha_bkg0,
                 alpha_bkg1,
@@ -545,8 +552,8 @@ class Fitter:
                 alpha_bkg6,
             )
             self.y_bft_signal = T_nu * Pull_2_T
-            self.sigma2 = SumSigmaSq_i.cpu().numpy()
-            self.chi2_binbybin = sqterm.cpu().numpy()
+            self.sigma2 = SumSigmaSq_i.detach().cpu().numpy()
+            self.chi2_binbybin = sqterm.detach().cpu().numpy()
 
         # print('chisq_rea: ', chisq_rea)
         return chisq_rea
