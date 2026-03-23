@@ -27,21 +27,21 @@ class NonLinearity:
             hist_new = file["original_nonlinearity"]
             edges_new = hist_new.axis().edges()
             self.x_new = torch.tensor(
-                (edges_new[:-1] + edges_new[1:]) / 2
+                (edges_new[:-1] + edges_new[1:]) / 2, device=gcfg.device
             )  # Compute bin centers
-            self.y_new = torch.tensor(hist_new.values())
+            self.y_new = torch.tensor(hist_new.values(), device=gcfg.device)
 
             # Process new_nonlinearity histogram
             hist_nom = file["new_nonlinearity"]
             edges_nom = hist_nom.axis().edges()
-            self.x_nom = torch.tensor((edges_nom[:-1] + edges_nom[1:]) / 2)
-            self.y_nom = torch.tensor(hist_nom.values())
+            self.x_nom = torch.tensor((edges_nom[:-1] + edges_nom[1:]) / 2, device=gcfg.device)
+            self.y_nom = torch.tensor(hist_nom.values(), device=gcfg.device)
 
             # Process four pull histograms
             self.f_pull = []
             for i in range(4):
                 hist_pull = file[f"nonlinearity_pull_{i + 1}"]
-                self.f_pull.append(torch.tensor(hist_pull.values()))
+                self.f_pull.append(torch.tensor(hist_pull.values(), device=gcfg.device))
 
         self.f_pull = torch.stack(self.f_pull)
         self.cache_monitor = CacheMonitor()  # New monitor instance

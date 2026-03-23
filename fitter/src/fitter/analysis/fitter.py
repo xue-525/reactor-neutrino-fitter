@@ -203,7 +203,7 @@ class Fitter:
             n_E_p_bins=n_E_p_bins,
         )
         self.n_bin = n_E_p_bins
-        self.bin2bin_sig = torch.tensor(self.rea.get_bin2bin_sig())
+        self.bin2bin_sig = torch.tensor(self.rea.get_bin2bin_sig(), device=gcfg.device)
         self.bin2bin_bkg_abs = torch.sum(
             self.rea.get_bin2bin_bkg_abs(day_bkg=self.year * 334.812 / 11 * 12), axis=0
         )
@@ -316,8 +316,7 @@ class Fitter:
             if self.syst_flags.get("D", True):
                 alpha_D = rg.normal(0, gcfg.gsigma_DetectorCorr)
 
-        self.y_obs = torch.tensor(
-            self.rea.get_signal_plus_background(
+        self.y_obs = self.rea.get_signal_plus_background(
                 self.dmsq31,
                 self.sinsq12,
                 self.dmsq21,
@@ -345,7 +344,6 @@ class Fitter:
                 alpha_RC,
                 alpha_D,
             )
-        )
 
         self.rea.SetRndSeed(0)
         return self.y_obs
@@ -456,26 +454,26 @@ class Fitter:
         Pull_2_T = 1
         Pull_2_T += alpha_RC + alpha_D
         T_nu = self.rea.get_E_p_spectrum(
-            dmsq31,
-            sinsq12,
-            dmsq21,
-            sinsq13,
-            alpha_Eres_a,
-            alpha_Eres_b,
-            alpha_Eres_c,
-            alpha_l_pull0,
-            alpha_l_pull1,
-            alpha_l_pull2,
-            alpha_l_pull3,
-            alpha_reactor1,
-            alpha_reactor2,
-            alpha_reactor3,
-            alpha_reactor4,
-            alpha_reactor5,
-            alpha_reactor6,
-            alpha_reactor7,
-            alpha_reactor8,
-            alpha_reactor9,
+            dmsq31=dmsq31,
+            sinsq12=sinsq12,
+            dmsq21=dmsq21,
+            sinsq13=sinsq13,
+            alpha_Eres_a=alpha_Eres_a,
+            alpha_Eres_b=alpha_Eres_b,
+            alpha_Eres_c=alpha_Eres_c,
+            alpha_l_pull0=alpha_l_pull0,
+            alpha_l_pull1=alpha_l_pull1,
+            alpha_l_pull2=alpha_l_pull2,
+            alpha_l_pull3=alpha_l_pull3,
+            alpha_reactor1=alpha_reactor1,
+            alpha_reactor2=alpha_reactor2,
+            alpha_reactor3=alpha_reactor3,
+            alpha_reactor4=alpha_reactor4,
+            alpha_reactor5=alpha_reactor5,
+            alpha_reactor6=alpha_reactor6,
+            alpha_reactor7=alpha_reactor7,
+            alpha_reactor8=alpha_reactor8,
+            alpha_reactor9=alpha_reactor9,
         )
 
         K_i = self.rea.get_background_spectrum(
@@ -494,9 +492,9 @@ class Fitter:
             (torch.pow(gcfg.gsigma_signal_b2b * T_nu, 2)) * 0.02 / gcfg.DataBinWidth
         )
         SumUnCorrErr += self.bin2bin_bkg_abs * 0.036 / gcfg.DataBinWidth
-        SumUnCorrErr = torch.tensor(SumUnCorrErr)
+        SumUnCorrErr = SumUnCorrErr.to(device=gcfg.device)
         D_i = D_i0
-        T_i = torch.tensor(T_nu * Pull_2_T + K_i)
+        T_i = (T_nu * Pull_2_T + K_i).to(device=gcfg.device)
         T_i = torch.where(T_i < 0, torch.ones_like(T_i) * 1e-23, T_i)
         # sqterm = torch.where(
         #     D_i == 0,
@@ -536,7 +534,7 @@ class Fitter:
 
         # Save best-fit expected spectrum
         if self.save_bft_spec:
-            self.y_bft = T_i.numpy()
+            self.y_bft = T_i.cpu().numpy()
             self.y_bft_bkg_comp = self.rea.get_divided_background_spectrum(
                 alpha_bkg0,
                 alpha_bkg1,
@@ -547,8 +545,8 @@ class Fitter:
                 alpha_bkg6,
             )
             self.y_bft_signal = T_nu * Pull_2_T
-            self.sigma2 = SumSigmaSq_i.numpy()
-            self.chi2_binbybin = sqterm.numpy()
+            self.sigma2 = SumSigmaSq_i.cpu().numpy()
+            self.chi2_binbybin = sqterm.cpu().numpy()
 
         # print('chisq_rea: ', chisq_rea)
         return chisq_rea

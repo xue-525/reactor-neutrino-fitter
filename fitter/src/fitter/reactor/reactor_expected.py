@@ -34,7 +34,7 @@ class ReactorExpected:
         # Parameterized binning logic
         def calc_bins(start, end, n_bins):
             step = (end - start) / n_bins
-            return torch.arange(start, end + step * 0.1, step)  # + step*0.1 ensures the endpoint is included
+            return torch.arange(start, end + step * 0.1, step, device=gcfg.device)  # + step*0.1 ensures the endpoint is included
 
         # Neutrino energy binning
         self.E_nu_edges = calc_bins(1.8, 13.0, n_E_nu_bins)
@@ -77,7 +77,7 @@ class ReactorExpected:
         self.nonlinearity = NonLinearity()
         self.day_bkg = day / 11 * 12
         self.prob = SurProb_e2e()
-        self.sigma_bkg = gcfg.sigma_bkg
+        self.sigma_bkg = gcfg.sigma_bkg.to(gcfg.device)
         self.seed = 0
         self.rg = 0
         # self.IBDBin2BinErr = self.get_bin2binErrValue()
@@ -94,15 +94,11 @@ class ReactorExpected:
 
     def calc_bins(start, end, n_bins):
         step = (end - start) / n_bins
-        return torch.arange(start, end + step * 0.1, step)
+        return torch.arange(start, end + step * 0.1, step, device=gcfg.device)
 
     def SetRndSeed(self, seed):
         self.seed = seed
-        if hasattr(torch, "get_default_device"):
-            self.rg = torch.Generator(torch.get_default_device()).manual_seed(seed)
-        else:
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            self.rg = torch.Generator(device).manual_seed(seed)
+        self.rg = torch.Generator(gcfg.device).manual_seed(seed)
 
     @CacheMonitor.monitor
     @lru_cache(maxsize=2)
@@ -115,10 +111,10 @@ class ReactorExpected:
         )  # Convert GW to MeV/s
 
         # Fission fractions for each isotope
-        fission_fractions = torch.tensor([0.58, 0.07, 0.30, 0.05])
+        fission_fractions = torch.tensor([0.58, 0.07, 0.30, 0.05], device=gcfg.device)
         # fission_fractions = [0.564, 0.076, 0.304, 0.056]
         # Energy released per fission for each isotope in MeV
-        energy_per_fission = torch.tensor([202.36, 205.99, 211.12, 214.26])
+        energy_per_fission = torch.tensor([202.36, 205.99, 211.12, 214.26], device=gcfg.device)
 
         # Step 1: Calculate the average energy released per fission for the mixture
         average_energy_per_fission = (
@@ -149,9 +145,9 @@ class ReactorExpected:
             values = hist.values()
 
             if Enu_flux is None:
-                Enu_flux = torch.tensor(bin_centers)
+                Enu_flux = torch.tensor(bin_centers, device=gcfg.device)
 
-            flux_data[key] = torch.log10(torch.tensor(values))
+            flux_data[key] = torch.log10(torch.tensor(values, device=gcfg.device))
 
         # Perform interpolation and restore exponential values
         interpolated_flux = {
@@ -183,14 +179,14 @@ class ReactorExpected:
 
         # Interpolate using torch_interp
         snf_correction = torch_interp(
-            E_nu, torch.tensor(snf_x), torch.tensor(snf_hist.values())
+            E_nu, torch.tensor(snf_x, device=gcfg.device), torch.tensor(snf_hist.values(), device=gcfg.device)
         )
 
         noneq_correction = torch_interp(
-            E_nu, torch.tensor(noneq_x), torch.tensor(noneq_hist.values())
+            E_nu, torch.tensor(noneq_x, device=gcfg.device), torch.tensor(noneq_hist.values(), device=gcfg.device)
         )
 
-        f_DYB = torch_interp(E_nu, torch.tensor(dnb_x), torch.tensor(dnb_hist.values()))
+        f_DYB = torch_interp(E_nu, torch.tensor(dnb_x, device=gcfg.device), torch.tensor(dnb_hist.values(), device=gcfg.device))
 
         return (
             snf_correction,
@@ -544,17 +540,17 @@ class ReactorExpected:
                 bin_values = histogram.values()
                 bin_values *= gcfg.m_bkg_rate[i] / bin_values.sum()
                 bin_edges = histogram.axis().edges()
-                bin_edges = torch.tensor(bin_edges, dtype=torch.float64)
-                bin_values = torch.tensor(bin_values, dtype=torch.float64)
+                bin_edges = torch.tensor(bin_edges, dtype=torch.float64, device=gcfg.device)
+                bin_values = torch.tensor(bin_values, dtype=torch.float64, device=gcfg.device)
                 bin_values = self.RebinHist(bin_edges, bin_values, self.E_p_edges)
 
                 if self.rebin_factor > 1:
                     rebinned_values, _ = self.rebin_histogram(
                         bin_values, bin_edges, self.rebin_factor
                     )
-                    pdfs.append(torch.tensor(rebinned_values, dtype=torch.float64))
+                    pdfs.append(rebinned_values.clone().to(dtype=torch.float64, device=gcfg.device))
                 else:
-                    pdfs.append(torch.tensor(bin_values, dtype=torch.float64))
+                    pdfs.append(bin_values.clone().to(dtype=torch.float64, device=gcfg.device))
 
         return torch.stack(pdfs)
 
@@ -581,7 +577,7 @@ class ReactorExpected:
             alpha_bkg6,
         ]
 
-        total_background = torch.zeros(len(self.E_p))
+        total_background = torch.zeros(len(self.E_p), device=gcfg.device)
         pdfs = self.get_background_spectrum_pdf()
         for i, tree_name in enumerate(gcfg.m_background_trees):
             bin_vals = pdfs[i].clone()
@@ -612,7 +608,8 @@ class ReactorExpected:
                 alpha_bkg4,
                 alpha_bkg5,
                 alpha_bkg6,
-            ]
+            ],
+            device=gcfg.device,
         ).unsqueeze(1)  # (7, 1)
         pdfs = self.get_background_spectrum_pdf()
         divided_bkg_spec = pdfs * self.day_bkg * (1 + alphas_bkg)
@@ -621,13 +618,13 @@ class ReactorExpected:
     @CacheMonitor.monitor
     @lru_cache(maxsize=1)
     def get_bin2bin_bkg_abs(self, day_bkg=1):
-        bin2bin_bkg = torch.zeros((len(gcfg.m_background_trees), len(self.E_p)))
+        bin2bin_bkg = torch.zeros((len(gcfg.m_background_trees), len(self.E_p)), device=gcfg.device)
 
         for k, tree_name in enumerate(gcfg.m_background_trees):
             if tree_name in self.file:
                 histogram = self.file[tree_name]
-                original_edges = torch.tensor(histogram.axis().edges())
-                original_values = torch.tensor(histogram.values())
+                original_edges = torch.tensor(histogram.axis().edges(), device=gcfg.device)
+                original_values = torch.tensor(histogram.values(), device=gcfg.device)
 
                 # Dynamically rebin to the current binning
                 rebinned_values = self.RebinHist(
@@ -652,7 +649,7 @@ class ReactorExpected:
             else gcfg.DataBinWidth
         )
         sigma_new = (
-            torch.sqrt(torch.tensor(0.036 / data_bin_width)) * gcfg.sigma_bkg[ibkg]
+            torch.sqrt(torch.tensor(0.036 / data_bin_width, device=gcfg.device)) * gcfg.sigma_bkg[ibkg]
         )
         weights = torch.normal(
             0, 1, (len(bkg_spectrum),), generator=self.rg, device=gcfg.device
@@ -668,7 +665,7 @@ class ReactorExpected:
             else gcfg.DataBinWidth
         )
         sigma_new = (
-            torch.sqrt(torch.tensor(0.02 / data_bin_width)) * self.get_bin2bin_sig()
+            torch.sqrt(torch.tensor(0.02 / data_bin_width, device=gcfg.device)) * self.get_bin2bin_sig()
         )
         weights = torch.normal(
             0, 1, (len(signal_spectrum),), generator=self.rg, device=gcfg.device
