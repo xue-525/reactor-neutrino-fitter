@@ -46,12 +46,12 @@ class ReactorLoss(nn.Module):
 
         # 参数名称到索引的映射
         self.param_name_to_idx = {}
-        for i, name in enumerate(self.juno_syst.fit_para_names):
+        for i, name in enumerate(self.juno_syst.names):
             self.param_name_to_idx[name] = i
 
         # 初始化参数
         if initial_params is None:
-            raw_params = self.juno_syst.fit_para_init.clone()
+            raw_params = self.juno_syst.NO_params_NO.clone()
         else:
             raw_params = torch.tensor(initial_params)
 
@@ -164,7 +164,7 @@ class ReactorLoss(nn.Module):
             physical_params = self._scale_params(self.params, forward=True)
 
             param_dict = {}
-            for i, name in enumerate(self.juno_syst.fit_para_names):
+            for i, name in enumerate(self.juno_syst.names):
                 param_dict[name] = physical_params[i].item()
         return param_dict
 
@@ -199,7 +199,7 @@ class ReactorLoss(nn.Module):
         """
         with torch.no_grad():
             param_dict = {}
-            for i, name in enumerate(self.juno_syst.fit_para_names):
+            for i, name in enumerate(self.juno_syst.names):
                 param_dict[name] = self.params[i].item()
         return param_dict
 
